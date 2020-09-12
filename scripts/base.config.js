@@ -84,7 +84,7 @@ function baseConfig(config, ctx) {
             }),
             smelte({ 
                 purge: production,
-                output: "dist/global.css", // it defaults to static/global.css which is probably what you expect in Sapper 
+                output: "static /global.css", // it defaults to static/global.css which is probably what you expect in Sapper 
                 postcss: [], // Your PostCSS plugins
                 whitelist: [], // Array of classnames whitelisted from purging
                 whitelistPatterns: [], // Same as above, but list of regexes
