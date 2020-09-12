@@ -1,13 +1,16 @@
 import svelte from 'rollup-plugin-svelte-hot';
-import Hmr from 'rollup-plugin-hot'
+import Hmr from 'rollup-plugin-hot';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
-import copy from 'rollup-plugin-copy'
-import del from 'del'
+import sveltePreprocess from 'svelte-preprocess';
+import typescript from '@rollup/plugin-typescript';
+import copy from 'rollup-plugin-copy';
+import del from 'del';
 import replace from '@rollup/plugin-replace';
-import { spassr } from 'spassr'
+import { spassr } from 'spassr';
+import smelte from 'smelte/rollup-plugin-smelte';
 
 const isNollup = !!process.env.NOLLUP
 
@@ -48,6 +51,7 @@ function baseConfig(config, ctx) {
         dev: !production, // run-time checks      
         // Extract component CSS — better performance
         css: css => css.write(`${buildDir}/bundle.css`),
+		preprocess: sveltePreprocess(),
         hot: isNollup,
     }
     
@@ -56,7 +60,7 @@ function baseConfig(config, ctx) {
     const _rollupConfig = {
         inlineDynamicImports: !dynamicImports,
         preserveEntrySignatures: false,
-        input: `src/main.js`,
+        input: 'src/main.ts',
         output: {
             name: 'routify_app',
             sourcemap: true,
@@ -78,7 +82,28 @@ function baseConfig(config, ctx) {
                 browser: true,
                 dedupe: importee => !!importee.match(/svelte(\/|$)/)
             }),
+            smelte({ 
+                purge: production,
+                output: "dist/global.css", // it defaults to static/global.css which is probably what you expect in Sapper 
+                postcss: [], // Your PostCSS plugins
+                whitelist: [], // Array of classnames whitelisted from purging
+                whitelistPatterns: [], // Same as above, but list of regexes
+                tailwind: { 
+                  colors: { 
+                    primary: "#b027b0",
+                    secondary: "#009688",
+                    error: "#f44336",
+                    success: "#4caf50",
+                    alert: "#ff9800",
+                    blue: "#2196f3",
+                    dark: "#212121" 
+                  }, // Object of colors to generate a palette from, and then all the utility classes
+                  darkMode: true, 
+                }, 
+                // Any other props will be applied on top of default Smelte tailwind.config.js
+              }),
             commonjs(),
+			typescript({ sourceMap: !production }),
 
             production && terser(), // minify
             !production && isNollup && Hmr({ inMemory: true, public: staticDir, }), // refresh only updated code
